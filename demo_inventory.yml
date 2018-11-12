@@ -1,0 +1,34 @@
+# demo_inventory.yml
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/aws_credentials.vault.yml
+  tasks:
+
+    - name: Gather EC2 facts.
+      ec2_instance_facts:
+        aws_access_key: "{{ec2_access_key}}"
+        aws_secret_key: "{{ec2_secret_key}}"
+        region: us-east-2
+      register: ec2_facts
+
+    - name: Get only running instance IP addresses.
+      debug:
+        msg: "Instance: {{ item.0 }} has private IP address: {{ item.1 }} , public IP address: {{ item.2 }} and public DNS name: {{ item.3 }}"
+      with_together:
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='tags.Name')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='private_ip_address')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_ip_address')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_dns_name')|list }}"
+
+    - name: Add running instance to Ansible Groups in memory
+      add_host:
+        groups: "{{ item.0 }}"
+        hostname: "{{ item.3 }}"
+      with_together:
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='tags.Name')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='private_ip_address')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_ip_address')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_dns_name')|list }}"
