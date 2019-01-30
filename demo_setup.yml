@@ -16,7 +16,7 @@
          aws_secret_key: "{{ec2_secret_key}}"
          key_name: Pedderland1
          group: msp_example
-#         placement_group: head_em_up_move_em_out
+         placement_group: head_em_up_move_em_out
          instance_type: t2.micro
          image: "ami-0350c5670171b5391"
          region: us-east-2
@@ -26,6 +26,7 @@
             Name: "{{ item.name }}"
          instance_tags:
             Name: "{{ item.name }}"
+            Class: "{{ item.name }}"
             Created by Ansible: "{{ rundate }}"
       register: ec2
       loop:

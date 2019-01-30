@@ -16,12 +16,13 @@
 
     - name: Get only running instance IP addresses.
       debug:
-        msg: "Instance: {{ item.0 }} has private IP address: {{ item.1 }} , public IP address: {{ item.2 }} and public DNS name: {{ item.3 }}"
+        msg: "Instance: {{ item.0 }} launched at {{ item.4 }} has private IP address: {{ item.1 }} , public IP address: {{ item.2 }} and public DNS name: {{ item.3 }}"
       with_together:
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='tags.Name')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='private_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_dns_name')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='launch_time')|list }}"
 
     - name: Add running instance to Ansible Groups in memory
       add_host:
@@ -32,3 +33,4 @@
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='private_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_dns_name')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='launch_time')|list }}"
