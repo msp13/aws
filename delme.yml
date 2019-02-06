@@ -1,3 +1,6 @@
+---
+# A file to sketchout ideas
+
 - hosts: localhost
   connection: local
   gather_facts: False

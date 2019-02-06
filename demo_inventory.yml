@@ -1,4 +1,5 @@
-# demo_inventory.yml
+---
+# Inventory of existing AWS ec2 instances
 
 - hosts: localhost
   connection: local

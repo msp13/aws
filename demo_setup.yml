@@ -1,3 +1,7 @@
+---
+# Create demo environment ec2 instances.  This includes Webserver, proxy and MySQL.
+# THe nubmer of servers deployed is controlled by the exact_count line.
+
 - hosts: localhost
   connection: local
   gather_facts: False

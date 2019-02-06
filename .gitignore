@@ -1,3 +1,4 @@
 # Ignore all retry files
 *.retry
 aws_credentials.vault.yml
+delme.yml
