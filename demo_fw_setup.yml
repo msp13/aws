@@ -7,20 +7,22 @@
     - vars/aws_credentials.vault.yml
 
   tasks:
-    - name: new vairable with date
-      set_fact: rundate="{{lookup('pipe','date +%Y-%m-%d\ \%H:%M:%S')}}"
+    - name: get public IP
+      ipify_facts:
+      register: public_ip
 
-    - name: example using security group rule descriptions
+    - name: webserver security group
       ec2_group:
         aws_access_key: "{{ec2_access_key}}"
         aws_secret_key: "{{ec2_secret_key}}"
-        name: "msp_example"
-        description: sg with rule descriptions
+        name: "webserver"
+        description: allow http and https access
         region: "{{ item }}"
         purge_tags: no
+        purge_rules: yes
+        purge_rules_egress: yes
         tags:
-           Purpose: To secure the demo environment
-           Updated by Ansible: "{{ rundate }}"
+           Purpose: To allow http and https access
 
 # Inbound Rules
         rules:
@@ -28,22 +30,9 @@
             ports:
             - 80
             - 443
-            - 32768 - 65535
             cidr_ip: 0.0.0.0/0
             cidr_ipv6: ::/0
             rule_desc: inbound server
-
-          - proto: tcp
-            ports:
-            - 22
-            cidr_ip: 12.41.206.85/32
-            rule_desc: SSH access - Work
-
-          - proto: tcp
-            ports:
-            - 22
-            cidr_ip: 45.30.81.56/32
-            rule_desc: SSH access - Home
 
 # Outbound Rules
         rules_egress:
@@ -51,10 +40,57 @@
             ports:
             - 80
             - 443
-            - 32768 - 65535
             cidr_ip: 0.0.0.0/0
             cidr_ipv6: ::/0
             rule_desc: outbound server
+
+# AWS Regions to deploy Security Groups
+      loop:
+         - us-east-1
+         - us-west-1
+         - us-east-2
+         - us-west-2
+
+    - name: ssh security group
+      ec2_group:
+        aws_access_key: "{{ec2_access_key}}"
+        aws_secret_key: "{{ec2_secret_key}}"
+        name: "ssh"
+        description: allow ssh
+        region: "{{ item }}"
+        purge_tags: no
+        purge_rules: yes
+        purge_rules_egress: yes
+        tags:
+           Purpose: Allow SSH from specific IP ranges.
+
+# Inbound Rules
+        rules:
+          - proto: tcp
+            ports:
+            - 22
+            cidr_ip: "{{ ipify_public_ip}}/32"
+            rule_desc: SSH access - Specific IP
+
+          # - proto: tcp
+          #   ports:
+          #   - 22
+          #   cidr_ip: 45.30.81.56/32
+          #   rule_desc: SSH access - Home
+
+# Outbound Rules
+        rules_egress:
+          - proto: tcp
+            ports:
+            - 22
+            cidr_ip: "{{ ipify_public_ip}}/32"
+            rule_desc: SSH access - Specific IP
+
+          # - proto: tcp
+          #   ports:
+          #   - 22
+          #   cidr_ip: 45.30.81.56/32
+          #   rule_desc: SSH access - Home
 
 # AWS Regions to deploy Security Groups
       loop:

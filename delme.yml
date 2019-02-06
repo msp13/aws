@@ -1,0 +1,12 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  # vars_files:
+  #   - vars/aws_credentials.vault.yml
+
+  tasks:
+    - name: get public IP
+      ipify_facts:
+      register: public_ip
+    - name: output
+      debug: msg="{{ public_ip }}"

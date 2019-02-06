@@ -18,7 +18,7 @@
       debug:
         msg: "Instance: {{ item.0 }} launched at {{ item.4 }} has private IP address: {{ item.1 }} , public IP address: {{ item.2 }} and public DNS name: {{ item.3 }}"
       with_together:
-        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='tags.Name')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='tags.Class')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='private_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_dns_name')|list }}"
@@ -29,8 +29,22 @@
         groups: "{{ item.0 }}"
         hostname: "{{ item.3 }}"
       with_together:
-        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='tags.Name')|list }}"
+        - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='tags.Class')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='private_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_ip_address')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='public_dns_name')|list }}"
         - "{{ ec2_facts.instances|selectattr('state.name', 'equalto', 'running')|map(attribute='launch_time')|list }}"
+
+- hosts: Webserver
+  remote_user: ec2-user
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Install httpd
+      package:
+        name: "httpd"
+        state: "latest"
+    - name: Start service httpd, if not started
+      service:
+        name: httpd
+        state: started

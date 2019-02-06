@@ -1,5 +1,3 @@
-# demo_setup.yml
-
 - hosts: localhost
   connection: local
   gather_facts: False
@@ -8,28 +6,32 @@
 
   tasks:
     - name: new vairable with date
-      set_fact: rundate="{{lookup('pipe','date +%Y-%m-%d\ \%H:%M:%S')}}"
+      set_fact: 
+        rundate="{{ lookup('pipe','date +%Y-%m-%d\ \%H:%M:%S') }}"
+        server_types="['MySQL','Webserver','Proxy']"
+        AWS_regions="['us-east-2']"
+        AWS_zones="['a','b']"
 
     - name: Provision a set of instances
       ec2:
-         aws_access_key: "{{ec2_access_key}}"
-         aws_secret_key: "{{ec2_secret_key}}"
+         aws_access_key: "{{ ec2_access_key }}"
+         aws_secret_key: "{{ ec2_secret_key }}"
          key_name: Pedderland1
-         group: msp_example
-         placement_group: head_em_up_move_em_out
+         group: ['webserver','ssh']
          instance_type: t2.micro
-         image: "ami-0350c5670171b5391"
-         region: us-east-2
+         image: "ami-04328208f4f0cf1fe"
+         region: "{{ item.1 }}"
+         zone: "{{ item.1 }}{{ item.2 }}"
          wait: true
-         exact_count: "{{ item.count }}"
+         exact_count: "1"
          count_tag:
-            Name: "{{ item.name }}"
+            Class: "{{ item.0 }}"
          instance_tags:
-            Name: "{{ item.name }}"
-            Class: "{{ item.name }}"
-            Created by Ansible: "{{ rundate }}"
+            Name: "{{ item.0 }}"
+            Class: "{{ item.0 }}"
+            Created_by_Ansible: "{{ rundate }}"
       register: ec2
-      loop:
-        - { name: 'MySQL', count: '2'}
-        - { name: 'Webserver', count: '2'}
-        - { name: 'Proxy', count: '2'}
+      with_nested:
+        - "{{ server_types }}"
+        - "{{ AWS_regions }}"
+        - "{{ AWS_zones }}"
